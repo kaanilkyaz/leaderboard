@@ -18,58 +18,46 @@ cron.schedule("0 0 0 * * *", updatePlaceOfUsers)
 cron.schedule("0 0 0 * * 1", updateMoneyPoolAndDistributeToPlayers);
 
 async function register(req, res, next){
-    const { errors, isValid } = validateRegisterInput(req.body)
-    if (!isValid) return res.status(400).json(errors)
-    try {
-
-        let user = await User.findOne({ email: req.body.email })
-        if (user) return res.status(400).json({ email: "Email already exists" });
-        else {
+  const { errors, isValid } = validateRegisterInput(req.body)
+  if (!isValid) return res.status(400).json(errors)
+  try {
+    let user = await User.findOne({ email: req.body.email })
+    if (user) return res.status(400).json({ email: "Email already exists" });
+    else {
       const newUser = new User({
         name: req.body.name,
         email: req.body.email,
         age: req.body.age
       });
-          newUser.password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(8), null);
-          newUser.save()
-          return res.json(newUser);
+      newUser.password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(8), null);
+      newUser.save()
+      return res.json(newUser);
     } 
-    } catch (error) {
-      next(error)
-    }
+  } catch (error) {
+    next(error)
   }
-
-function getOnlineUsers (){
-  const users = {};
-    
-    return users
 }
 
 async function login(req, res, next){
-    const { errors, isValid } = validateLoginInput(req.body);
-    if (!isValid) {
-        return res.status(400).json(errors);
-    }
-    try {
-      const password = req.body.password;
+  const { errors, isValid } = validateLoginInput(req.body);
+  if (!isValid) {
+      return res.status(400).json(errors);
+  }
+  try {
+    const password = req.body.password;
     const email = req.body.email;
     const user = await User.findOne({ email })
     if (!user) {
       return res.status(404).json({ emailnotfound: "Email not found" });
     }
     if(bcrypt.compare(password, user.password)){
-        const payload = { id: user.id, name: user.name };
-        jwt.sign(payload,keys.secretOrKey,{expiresIn: 31556926 },
-          (err, token) => {
-            res.json({ success: true, token: token });
-          }
-        );
-    } else {
-        return res.status(400).json({ passwordincorrect: "Password incorrect" });
-    }
-    } catch (error) {
-      next(error)
-    }
+      const payload = { id: user.id, name: user.name };
+      const token = jwt.sign( payload, keys.secretOrKey, { expiresIn: 31556926 });
+      res.json({{ success: true, token: token})
+    } else return res.status(400).json({ passwordincorrect: "Password incorrect" });
+  } catch (error) {
+    next(error)
+  }
 }
 
 async function findFirst100PlayerAndCurrentUserPlace(req, res, next){
