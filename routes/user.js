@@ -14,7 +14,7 @@ router.get("/leaderboard", findFirst100PlayerAndCurrentUserPlace)
 router.post("/register", register);
 router.post("/login", login)
 
-cron.schedule("0 0 0 * * *", updatePlaceOfUser)
+cron.schedule("0 0 0 * * *", updatePlaceOfUsers)
 cron.schedule("0 0 0 * * 1", updateMoneyPoolAndDistributeToPlayers);
 
 async function register(req, res, next){
@@ -81,7 +81,7 @@ async function findFirst100PlayerAndCurrentUserPlace(req, res, next){
   }
 }
 
-async function updatePlaceOfUser(){
+async function updatePlaceOfUsers(){
   const allPlayers = await User.find({}).sort({score: -1})
   allPlayers.forEach((p, i) => {
     p.changeInPlace =  p.lastDayPlace - (i + 1)
